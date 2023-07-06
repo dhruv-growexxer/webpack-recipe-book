@@ -1,0 +1,55 @@
+1. npx webpack
+
+mode 
+2. npx webpack --mode=development
+
+3. webpack.config.js => default name for the webpack configuration
+const config = {
+    entry: './src', // webpack will start from this path when running the build process
+    output: {
+        path: path.resolve(__dirname, 'dist'),
+        filename: 'main.js',
+    }, // where and which files should be generated
+    mode: "production", // default is also production
+}
+
+// webpack-merge package to merge common configuration
+// create webpack.common.config.js with above package and move common configs
+
+// now to run webpack with different path because our webpack is not at the root dir
+run below command
+4. npx webpack --config webpack/webpack.dev.config.js
+
+run this and check the size of the bundle.js created by this command
+5. ls -lh dist
+compare with webpack.prod.config.js's bundle.js
+
+6. we want to see our changes in the browser instantly, even without rebuilding stuff
+webpack-dev-server => is useful for automatic rebuilds and hot module replacement
+
+````````````````````````````````````
+module.exports = merge(common, {
+  mode: "development",
+  devServer: {
+    port: 9000, // the server is going to be running
+    static: {
+      directory: path.resolve(__dirname, ".."), // pointing webpack dev server to the root folder
+    },
+    devMiddleware: {
+      index: "index.html", // root file
+      writeToDisk: true, // true then keep the dist folder, false then it will delete the dist folder
+    },
+    client: {
+      overlay: true, // show errors live in the browers
+    },
+    liveReload: true, // live reload if changes are made
+  },
+});
+```````````````````````````````````````````
+
+
+
+points to check for build sizes
+
+cleanwebpackplugin
+different files generator like js, css
