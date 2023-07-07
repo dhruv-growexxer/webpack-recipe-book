@@ -1,0 +1,112 @@
+1. generate a new file in the output directory and export the URL to this file (use this when importing large images)
+2. generate a base64 representation of this image and inject that string direclty into the js bundle this is so called data URL
+
+Image optimization for production mode
+
+1. Approach One
+use image-webpack-loader
+dev config
+````````````````````````````````````````````````
+{
+    test: /\.(png|jpg|svg)$/,
+    type: "asset",
+    parser: {
+        // this will tell webpack to generate a seperate file only for large images and small images will be inline directly into the javascript code
+        dataUrlCondition: {
+        maxSize: 10 * 1024, // 10kb
+        },
+    },
+    generator: {
+        // helps to put it in a specific path for the generated image
+        filename: "./images/[name][text]",
+    },
+},
+``````````````````````````````````````````````````
+
+prod config
+
+``````````````````````````````````````````````````
+{
+    test: /\.(png|jpg|svg)$/,
+    type: "asset",
+    parser: {
+        dataUrlCondition: {
+        maxSize: 10 * 1024, // 10kb
+        },
+    },
+    generator: {
+        filename: "./images/[name].[contenthash:12][text]",
+    },
+    use: [
+        {
+        loader: "image-webpack-loader",
+        options: {
+            mozjpeg: {
+            quality: 40, // 0-100 -> 40 is enough
+            }, // jpeg compressor
+            pngquant: {
+            quality: [0.65, 0.95],
+            speed: 4,
+            }, // png compressor -> reduces file sizes by converting images to a more efficient 8 bit png formate
+        },
+        },
+    ],
+},
+``````````````````````````````````````````````````
+
+----------------------------------------------------------------
+
+2. Approach Two (using ImageMinimizerPlugin)
+
+npm i -D image-minimizer-webpack-plugin
+and also
+npm i -D imagemin-gifsicle imagemin-mozjpeg imagemin-pngquant imagemin-svgo 
+
+add this in prod config - optimization 
+```````````````````````````````````````````````````
+new ImageMinimizerPlugin({
+    minimizer: {
+        implementation: ImageMinimizerPlugin.imageminMinify,
+        options: {
+        // Lossless optimization with custom option
+        // Feel free to experiment with options for better result for you
+        plugins: [
+            ["imagemin-mozjpeg", { quality: 40 }],
+            [
+            "imagemin-pngquant",
+            {
+                quality: [0.65, 0.9],
+                speed: 4,
+            },
+            ],
+            ["imagemin-gifsicle", { interlaced: true }],
+            [
+            "imagemin-svgo",
+            {
+                plugins: [
+                {
+                    name: "preset-default",
+                    params: {
+                    overrides: {
+                        removeViewBox: false,
+                        addAttributesToSVGElement: {
+                        params: {
+                            attributes: [
+                            { xmlns: "http://www.w3.org/2000/svg" },
+                            ],
+                        },
+                        },
+                    },
+                    },
+                },
+                ],
+            },
+            ],
+        ],
+        },
+    },
+})
+``````````````````````````````````````````````````
+
+
+"ls -lah dist/images" --> to check the size of files in dist/images 

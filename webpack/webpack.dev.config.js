@@ -52,6 +52,20 @@ module.exports = merge(common, {
         test: /\.scss$/,
         use: ["style-loader", "css-loader", "sass-loader"],
       },
+      {
+        test: /\.(png|jpg|svg)$/,
+        type: "asset",
+        parser: {
+          // this will tell webpack to generate a seperate file only for large images and small images will be inline directly into the javascript code
+          dataUrlCondition: {
+            maxSize: 10 * 1024, // 10kb
+          },
+        },
+        generator: {
+          // helps to put it in a specific path for the generated image
+          filename: "./images/[name][text]",
+        },
+      },
     ],
   },
 });
