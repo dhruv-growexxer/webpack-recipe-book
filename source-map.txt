@@ -1,0 +1,22 @@
+Have you ever thought how great it would be if you could keep your client side code easy to debug even after you deployed it to production, staging or some kind of secure environment and all of that without affecting performance of your application.
+
+That's why people invented source maps.
+
+Basically, a source map is a way to map the generated JavaScript bundle back to the original source code in order to make this work.
+When you run your build process along with the mini file and one linear code, you would also generate a source map which holds the information about your original files.
+At the same time, developer tools in your browser can parse source maps and make it appear as if you are running an minified original source code.
+
+
+devtool: "source-map",
+
+add this property in our webpack prod file (it is only recommended for production because it takes more time)
+
+for development mode we use 
+
+devtool: "eval-source-map",
+
+for faster development
+
+check https://webpack.js.org/configuration/devtool/#devtool for more information
+
+NOTE: we need to use babel-plugin like @emotion/babel-plugin for the CSS-in-JS

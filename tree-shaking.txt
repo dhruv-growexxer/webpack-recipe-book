@@ -1,0 +1,24 @@
+Tree shaking means code elimination
+
+In other words, Webpack can simply remove unused code from your production bundles. This can reduce the size of the files significantly. However, the benefits of shaken will vary depending on your code base. If you have a lot of imported code from external or internal libraries that's not been used, you will see a huge improvement in your generated bundle size.
+
+However, if you prefer not to use external libraries and build everything from scratch, then you won't see much of a benefit from tree shaken.
+
+now to achieve this remove lodash and use lodash-es library
+
+Remember, we needed to import only one function from a low dash library.
+However, the whole library is being included in the resulting JavaScript file.
+That's because lodash codebase doesn't use script modules and three can only works with script modules.
+
+Luckily we can easily fix that.
+
+There is an NPM package called lodash-es, which is basically a loader library exported as a script modules.
+
+
+npm uninstall lodash
+
+then 
+
+npm i -D lodash-es
+
+and check prod build size

@@ -4,12 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "webpack --config webpack/webpack.prod.config.js",
-    "dev": "webpack serve --config webpack/webpack.dev.config.js --hot"
+    "build": "cross-env NODE_ENV=production webpack --config webpack/webpack.prod.config.js",
+    "dev": "cross-env NODE_ENV=dev webpack serve --config webpack/webpack.dev.config.js --hot"
   },
   "repository": {
-    "type": "git",
-    "url": "git+https://github.com/vp-online-courses/webpack-optimization-starter.git"
+    "type": "git"
   },
   "keywords": [],
   "author": "",
@@ -19,8 +18,13 @@
   },
   "homepage": "https://github.com/vp-online-courses/webpack-optimization-starter#readme",
   "devDependencies": {
+    "@babel/core": "^7.22.8",
+    "@babel/preset-env": "^7.22.7",
+    "babel-loader": "^9.1.2",
     "bootstrap": "^5.3.0",
     "clean-webpack-plugin": "^4.0.0",
+    "core-js": "^3.31.1",
+    "cross-env": "^7.0.3",
     "css-loader": "^6.8.1",
     "css-minimizer-webpack-plugin": "^5.0.1",
     "html-loader": "^4.2.0",

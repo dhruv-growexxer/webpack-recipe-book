@@ -1,0 +1,140 @@
+// https://babeljs.io/docs/
+
+convert ECMAScript 2015+ code into backwards compatible version of javascript
+
+Babel allows you to use all kinds of newest script features by combining various Babel plugins
+
+There is also a possibility to include mulitple plugins into your configuration by using one or more presets
+
+A preset is just a collection of mulitple babel plugins that and some configuration options
+
+Babel provides a few presets for the most popular setups, like ECMAScript6 Support, TypeScript Support and react support
+
+npm i -D @babel/core @babel/preset-env babel-loader
+
+Let's install this preset together with Babel Core.
+
+1. Create a configuration file for Babel. (.babelrc)
+
+This will be able to use any preset in order to support ECMAScript6 and later specifications.
+
+env-preset needs to have the list of target browsers in order to generate the list of plugins needed for Babel.
+
+For example, if your application only needs to support the latest version of Chrome, you don't have to transform Arrow functions to regular JavaScript function because Chrome supports Arrow functions out of the box.
+
+However, if your application needs to support Internet Explorer, then you would have to transform them.
+
+env-preset will figure out by itself which things it needs to transform and which it doesn't.
+
+Based on the list of supported browsers, you only need to tell it which browsers you need to support.
+
+2. Create a file  (.browserlistrc) to tell supported browsers list
+
+The good thing about this file is that it can be used for multiple tools.
+
+For example, Babel can use this file as well.
+You can specify the list of supported browsers in multiple different formats. At the moment we just say that we need to support last ten versions of all browsers. However, browsers list supports more flexible requirements.
+
+For example, I can write here something like last two Chrome versions and also I need to support Internet Explorer nine.
+`````````
+last 2 Chrome versions
+ie 9
+`````````````
+
+Or you can tell Babel to support all browsers that have more than 1% market share.
+Also I will put here 0.25% in order to support all the browsers that have more than 0.25% market share.
+
+Webpack still doesn't know anything about Babel and its configuration files.
+
+Let's tell Webpack two things.
+First, that Babel exists, and the second, that it should use these configuration files when running the build process.
+
+-----------------------------------------------------------
+
+Polyfills
+
+Add missing features to the older version of ECMAScript.
+For example, Promises have appeared in ES6 and they are not supported in the some browsers that came out before ECMAScript6 
+Promises are not supported in IE at all.
+This situations can be fixed by providing polyfills for those features
+
+A polyfill is a piece of code used to provide modern functionality to older browsers that don't natvitely supoort it.
+
+Babel automatically figure out which polyfill are needed based on the browsers you want to support. We just need to support couple of extra options in the Bible configuration before going forward
+
+before polyfill "npm run build" -> build size -> assets by chunk 52.6 KiB (name: main)
+
+after adding
+`````````````
+{
+  "presets": [
+    [
+      "@babel/preset-env",
+      {
+        "useBuiltIns": "usage",
+        "corejs": {
+          "version": 3,
+          "proposals": true
+        },
+        "debug": true, // will able to see which polyfills are added by the babel
+        "targets": "> 1%"
+      }
+    ]
+  ]
+}
+
+NOTE -> targets are used here instead of browserlistrc
+
+```````````````
+npm i -D core-js
+
+corejs helps to add polyfills
+
+NOTE -> currently polyfill are also added to dev mode inspite of not using it
+
+To use only for production we add 
+{
+  "env": {
+    "production": {
+      "presets": [
+        [
+          "@babel/preset-env",
+          {
+            "useBuiltIns": "usage",
+            "corejs": {
+              "version": 3,
+              "proposals": true
+            },
+            "debug": true, // will able to see which polyfills are added by the babel
+            "targets": "> 1%"
+          }
+        ]
+      ]
+    },
+    "dev": {
+      "presets": ["@babel/preset-env"]
+    }
+  }
+}
+in our .babelrc file
+
+Now to tell webpack we are in dev or prod mode we mention NODE_ENV=production or NODE_ENV=dev in our package.json script
+`````````````````````````````````````````````
+"scripts": {
+    "build": "NODE_ENV=production webpack --config webpack/webpack.prod.config.js",
+    "dev": "NODE_ENV=dev webpack serve --config webpack/webpack.dev.config.js --hot"
+},
+``````````````````````````````````````````````````
+
+In windows 
+passing environment variables are little different 
+it is like set NODE_ENV=production&&<command>
+NOTE -> no space before and after &&
+
+
+
+Now to define scripts across the different platforms we need to use cross-env package
+
+npm i -D cross-env
+
+now our scripts become

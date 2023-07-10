@@ -1,0 +1,23 @@
+{
+  "env": {
+    "production": {
+      "presets": [
+        [
+          "@babel/preset-env",
+          {
+            "useBuiltIns": "usage",
+            "corejs": {
+              "version": 3,
+              "proposals": true
+            },
+            "debug": true, // will able to see which polyfills are added by the babel
+            "targets": "> 1%"
+          }
+        ]
+      ]
+    },
+    "dev": {
+      "presets": ["@babel/preset-env"]
+    }
+  }
+}
