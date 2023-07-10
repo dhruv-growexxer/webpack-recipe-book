@@ -70,6 +70,31 @@ module.exports = merge(common, {
         },
       }),
     ],
+    // we told explicitly webpack to code split for jquery and bootstrap
+    // splitChunks: {
+    //   cacheGroups: {
+    //     jquery: {
+    //       test: /[\\/]node_modules[\\/]jquery[\\/]/,
+    //       chunks: "initial", // 'async'  'all'
+    //       name: "jquery", // give name to the generated bundle file
+    //     },
+    //     bootstrap: {
+    //       test: /[\\/]node_modules[\\/]bootstrap[\\/]/,
+    //       chunks: "initial", // 'async'  'all'
+    //       name: "bootstrap", // give name to the generated bundle file
+    //     },
+    //   },
+    // },
+    // code split automatically by webpack
+    splitChunks: {
+      chunks: "all",
+      maxSize: 140000,
+      minSize: 50000,
+      name(module, chunks, cacheGroupKey) {
+        const filePathAsArray = module.identifier().split("/");
+        return filePathAsArray[filePathAsArray.length - 1];
+      }, // generate names in dist folder according to the package
+    },
   },
   module: {
     rules: [

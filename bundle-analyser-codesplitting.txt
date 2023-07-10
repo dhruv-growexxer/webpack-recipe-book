@@ -1,0 +1,244 @@
+At the moment we have only one generated bundle and it seems that the generated bundle contains a lot of stuff.
+
+It's a bit hard to understand what's inside this bundle just by looking at the generated code.
+
+Luckily, there are a few tools that can help us analyze what parts this bundle consists of.
+
+One of these tools is called Webpack Bundle Analyzer.
+
+Webpack Bundle Analyzer can visualize the size of Webpack output files and provide an interactive representation of them.
+
+1. npm i -D webpack-bundle-analyzer
+2. create new file webpack.analyze.config.js
+and add
+``````````````````````````````````````````````````````````````````
+const production = require("./webpack.prod.config");
+const { merge } = require("webpack-merge");
+const BundleAnalyzerPlugin =
+  require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
+
+module.exports = merge(production, {
+  plugins: [
+    new BundleAnalyzerPlugin({
+      analyzerMode: "server",
+      openAnalyzer: true,
+    }),
+  ],
+});
+````````````````````````````````````````````````````````````````
+3. add script in package.json
+````````````````````````````````````````````````````````````````
+"scripts": {
+   ...
+    "bundle-analyzer": "NODE_ENV=production webpack --config webpack/webpack.analyze.config.js"
+},
+`````````````````````````````````````````````````````````````````
+
+
+
+In plugins option of BundleAnalyzerPlugin,we have, 
+a. analyser mode and it's responsible for the format of the generated reports.
+
+b. server mode analyzer will start http server to show the bundle report 
+
+c. static mode this bundle report will be generated as a single HTML file and 
+
+d. in JSON mode this bundle report will be generated as a JSON file
+
+This means that we are going to start http server each time we run bundle analyzer.
+
+Now let's run this (4) script and analyse the generated bundle report
+
+4. npm run bundle-analyzer 
+
+------------------------------------------------------------------
+All these boxes that you can see on this page are approximately the same color, which means all of this is a single JavaScript bundle.
+There are a few downsides of the fact that all of this code is bundled together.
+
+Drawbacks of Putting everything into a single bundle:
+a. bundle size is huge
+b. suboptimal use of browser caching
+
+So having all your code together with all the dependencies in one bundle is not great for browser caching.
+
+As you know, each time you open a website in your browser, it needs to download all the code needed for that website together with all the assets. This can take quite a lot of time, especially on mobile devices. That's why all browsers use caching.
+
+Caching allows browsers to decrease amount of requests needed to load websites, as well as make websites load faster.
+
+Let's go to Webpack configuration and tell Webpack to put this to dependencies into separate bundles.
+
+In Webpack code splitting can be achieved using split chunks plugin, which is included out of the box.
+
+You don't have to install anything.
+
+You just need to define one extra configuration option in the Webpack configuration.
+And this option is called split chunks.
+
+It belongs to optimization part in order to put jQuery and bootstrap into their own bundles.
+
+We need to define two cache groups.
+One cache group will be responsible for jQuery and the other one for bootstrap.
+
+```````````````````````````````````````````````````````````````````
+splitChunks: {
+      cacheGroups: {
+        jquery: {
+          test: /[\\/]node_modules[\\/]jquery[\\/]/,
+          chunks: "initial", // 'async'  'all'
+          name: "jquery", // give name to the generated bundle file
+        },
+        bootstrap: {
+          test: /[\\/]node_modules[\\/]bootstrap[\\/]/,
+          chunks: "initial", // 'async'  'all'
+          name: "bootstrap", // give name to the generated bundle file
+        },
+    },
+},
+``````````````````````````````````````````````````````
+now run 
+    npm run bundle-analyser
+
+You can see different colors of bundle which mean that these boxes represent different bundles.
+
+If you open this sidebar on the left, you will see that the Webpack generated three bundles as a result of the build process, and you can also see the sizes of all three bundles.
+
+
+
+
+-----------------------------------------------------
+
+In our case, We explicitly told Webpack to extract those two libraries by using regular expressions.
+
+However, Webpack is smart enough to figure out which libraries to extract.
+
+I can simply tell Webpack which rules to use when doing code splitting, and it will generate results in bundles according to those rules.
+
+First of all, I will tell Webpack which chunks this rule should apply to.
+
+This is going to apply to all chunks, both initial and asynchronous.
+
+Now I will specify maximum size for a chunk.
+
+This will tell Webpack to split chunks bigger than the maximum size into smaller parts.
+
+Maximum size is only a hint, and it could be violated when modules are bigger than the specified maximum size or the resulting chunks will be smaller than the allowed minimum size.
+
+By default, maximum size is zero, which means there is no maximum size.
+
+Maximum size is intended to be used with HTTP two and with long term question.
+
+It increases the amount of requests for better creation.
+
+It could also be used to decrease the file size in order to make rebuilds faster.
+
+Let's specify minimum size as well.
+
+Both maximum and minimum size are specified in bytes.
+
+```````````````````````````````````````````````````````````````````
+splitChunks: {
+      chunks: "all",
+      maxSize: 140000,
+      minSize: 50000,
+      name(module, chunks, cacheGroupKey) {
+        const filePathAsArray = module
+            .identifier()
+            .split('/')
+        return filePathAsArray[filePathAsArray.length - 1];
+    } // generate names in dist folder according to the package
+},
+``````````````````````````````````````````````````````
+run 
+    npm run build
+    npm run bundle-analyser
+
+You can see different bundle generated with different colors
+
+
+
+
+
+
+----------------------------------------------------------------
+
+Putting all the node_modules in the seperate bundle 
+
+````````````````````````````````````
+splitChunks: {
+    chunks: 'all',
+    maxSize: Infinity,
+    minSize: 0
+    cacheGroups: {
+        node_modules: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'node_modules'
+        }
+    }
+}
+``````````````````````````````````````
+
+now run 
+    npm run bundle-analyser
+
+it will generate one bundle for node_modules and another for our own code
+
+
+----------------------------------------------------------------
+Creating a JS bundle for each dependency
+
+`````````````````````````````````
+splitChunks: {
+    chunks: 'all',
+    maxSize: Infinity,
+    minSize: 0,
+    cacheGroups: {
+        node_modules: {
+            test: /[\\/]node_modules[\\/]/,
+            name(module) {
+                const packageName = module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/)[1];
+                return packageName;
+            },
+        },
+    }
+}
+``````````````````````````````````
+Some people are afraid that the quantity of bundles will be equal to the quantity of packages in the node modules folder.
+
+However, webpack will take only those packages that the application is really using.
+
+
+----------------------------------------------- 
+Custom Code splitting
+
+Webpack also allows us to put runtime code into a separate JavaScript bundle using a runtime chunk option 
+
+By default each entry chunk embeds runtime code.
+
+If I specify value, 'single' Webpack will create a single runtime file that will be shared across all generated bundles.
+
+`````````````````````````````````````````
+runtimeChunk: 'single',
+splitChunks: {
+    chunks: 'all',
+    maxSize: Infinity,
+    minSize: 2000,
+    cacheGroups: {
+        jquery: {
+            test: /[\\/]node_modules[\\/]jquery[\\/]/,
+            name: 'jquery',
+        },
+        bootstrap: {
+            test: /[\\/]node_modules[\\/]bootstrap[\\/]/,
+            name: 'bootstrap',
+        },
+        lodash: {
+            test: /[\\/]node_modules[\\/]lodash-es[\\/]/,
+            name: 'lodash-es',
+        },
+        node_modules: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'node_modules',
+        },
+    }
+}
+`````````````````````````````````````````

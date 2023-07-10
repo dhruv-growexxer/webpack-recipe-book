@@ -15,5 +15,37 @@
       <input class="new-todo" placeholder="Enter text here" autofocus />
       <ul class="todo-list"></ul>
     </div>
+
+    <div
+      class="modal fade"
+      id="modal-delete-todo"
+      tabindex="-1"
+      aria-labelledby="modalDeleteTodo"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-body">
+            <p>Do you really want to delete this todo?</p>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              id="modal-delete-button"
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
