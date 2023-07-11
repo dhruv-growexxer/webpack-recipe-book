@@ -86,14 +86,39 @@ module.exports = merge(common, {
     //   },
     // },
     // code split automatically by webpack
+    // splitChunks: {
+    //   chunks: "all",
+    //   maxSize: 140000,
+    //   minSize: 50000,
+    //   name(module, chunks, cacheGroupKey) {
+    //     const filePathAsArray = module.identifier().split("/");
+    //     return filePathAsArray[filePathAsArray.length - 1];
+    //   }, // generate names in dist folder according to the package
+    // },
+
+    // lazy-loading custom code splitting with async
     splitChunks: {
       chunks: "all",
-      maxSize: 140000,
-      minSize: 50000,
-      name(module, chunks, cacheGroupKey) {
-        const filePathAsArray = module.identifier().split("/");
-        return filePathAsArray[filePathAsArray.length - 1];
-      }, // generate names in dist folder according to the package
+      maxSize: Infinity,
+      minSize: 2000,
+      cacheGroups: {
+        lodash: {
+          test: /[\\/]node_modules[\\/]lodash-es[\\/]/,
+          name: "lodash-es",
+        },
+        node_modules: {
+          test: /[\\/]node_modules[\\/]/,
+          name: "node_modules",
+          chunks: "initial",
+        },
+        async: {
+          test: /[\\/]node_modules[\\/]/,
+          chunks: "async",
+          name(module, chunks) {
+            return chunks.map((chunk) => chunk.name).join("-");
+          },
+        },
+      },
     },
   },
   module: {

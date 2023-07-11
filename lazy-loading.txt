@@ -1,0 +1,160 @@
+How to import JS dynamically
+
+All of these bundles are required for the application to work properly. However, not all of them are required immediately. For exapmle, Some of these bundles are not needed until the user tries to delete add to the item.
+
+
+chunks property indicates which chunks will be selected for optimization.
+
+'all' means that the optimization is defined below apply to all chunks.
+
+The other two values that I can specify here are called initial or async.
+
+'initial' chunks mean that these optimizations should be applicable only to those chunks that will be loaded during the initial application load.
+
+'async' chunks are those chunks which are loaded asynchronously after the application has already loaded.
+
+For example, those pieces of code loaded asynchronously using dynamic imports.
+
+``````````````````````````````````````````````````````````````````````````````````
+event-handlers.js
+
+export function removeTodoEventHandler(event) {
+  import(
+    "bootstrap"
+    /* webpackChunkName: "bootstrap" */
+  ).then(function ({ Modal }) {
+    const id = getTodoId(event.target);
+    $("#modal-delete-button").data("todo-id", id);
+    const deleteTodoModal = Modal.getOrCreateInstance(
+      document.getElementById("modal-delete-todo")
+    );
+    deleteTodoModal.show();
+  });
+}
+
+export function confirmRemoveEventHandler() {
+  import(
+    "bootstrap"
+    /* webpackChunkName: "bootstrap" */
+  ).then(function ({ Modal }) {
+    const id = $("#modal-delete-button").data("todo-id");
+    removeTodo(id);
+    renderTodos(getAllTodos());
+    const deleteTodoModal = Modal.getOrCreateInstance(
+      document.getElementById("modal-delete-todo")
+    );
+    deleteTodoModal.hide();
+  });
+}
+``````````````````````````````````````````````````````````````````````````````````
+webpack.prod.config.js
+
+splitChunks: {
+    chunks: "all",
+    maxSize: Infinity,
+    minSize: 2000,
+    cacheGroups: {
+        jquery: {
+            test: /[\\/]node_modules[\\/]jquery[\\/]/,
+            name: "jquery",
+        },
+        lodash: {
+            test: /[\\/]node_modules[\\/]lodash-es[\\/]/,
+            name: "lodash-es",
+        },
+        node_modules: {
+            test: /[\\/]node_modules[\\/]/,
+            name: "node_modules",
+            chunks: "initial",
+        },
+        async: {
+            test: /[\\/]node_modules[\\/]/,
+            chunks: "async",
+            name(module, chunks) {
+            return chunks.map((chunk) => chunk.name).join("-");
+            },
+        },
+    },
+},
+``````````````````````````````````````````````````````````````````````````````````
+run 
+    npm run build and check the dynamic import of bootstrap on click of delete button
+
+
+
+
+
+---------------------------------------------------------------------------------------------------------------------------
+Using multiple dynamic import
+
+````````````````````````````````````````````````````````````````````````
+event-handlers.js
+
+export function removeTodoEventHandler(event) {
+  Promise.all([
+    import(
+      "bootstrap"
+      /* webpackChunkName: "bootstrap" */
+    ),
+    import(
+      "jquery"
+      /* webpackChunkName: "jquery" */
+    ),
+  ]).then(function ([{ Modal }, { default: $ }]) {
+    const id = getTodoId(event.target);
+    $("#modal-delete-button").data("todo-id", id);
+    const deleteTodoModal = Modal.getOrCreateInstance(
+      document.getElementById("modal-delete-todo")
+    );
+    deleteTodoModal.show();
+  });
+}
+
+export function confirmRemoveEventHandler() {
+  Promise.all([
+    import(
+      "bootstrap"
+      /* webpackChunkName: "bootstrap" */
+    ),
+    import(
+      "jquery"
+      /* webpackChunkName: "jquery" */
+    ),
+  ]).then(function ([{ Modal }, { default: $ }]) {
+    const id = $("#modal-delete-button").data("todo-id");
+    removeTodo(id);
+    renderTodos(getAllTodos());
+    const deleteTodoModal = Modal.getOrCreateInstance(
+      document.getElementById("modal-delete-todo")
+    );
+    deleteTodoModal.hide();
+  });
+}
+
+````````````````````````````````````````````````````````````````````````
+webpack.prod.config.js
+
+splitChunks: {
+    chunks: 'all',
+    maxSize: Infinity,
+    minSize: 2000,
+    cacheGroups: {
+        lodash: {
+            test: /[\\/]node_modules[\\/]lodash-es[\\/]/,
+            name: 'lodash-es',
+        },
+        node_modules: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'node_modules',
+            chunks: 'initial',
+        },
+        async: {
+            test: /[\\/]node_modules[\\/]/,
+            chunks: 'async',
+            name(module, chunks) {
+                return chunks.map(chunk => chunk.name).join('-');
+            },
+        }
+    }
+}
+````````````````````````````````````````````````````````````````````````
