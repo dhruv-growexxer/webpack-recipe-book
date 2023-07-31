@@ -1,0 +1,7 @@
+When we are talking about development builds, I could use a magic command in the terminal that would start a small web server that we could use for development purposes.
+
+Generally, it would be a great idea to have something like that for running our application in production mode as well.
+
+The bad news is that it's not recommended to use web pack disorder for production because it's not optimized for such use cases.
+
+However, the good news is that we can create our own web server using express framework and then use this web server for running our application in production mode.
